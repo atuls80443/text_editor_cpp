@@ -14,6 +14,8 @@
 #include <QPlainTextEdit>
 #include <QSaveFile>
 #include <QTextDocument>
+#include <QLabel>
+#include <QStatusBar>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -24,19 +26,26 @@ MainWindow::MainWindow(QWidget *parent)
     setCentralWidget(m_editor);
 
     createActions();
+    createStatusBar(); //initialize status bar
+
+    // update status bar when cursor moves
+    connect(m_editor, &QPlainTextEdit::cursorPositionChanged,
+            this, &MainWindow::updateStatusBar);
 
     // Show a "*" in the title whenever the document has unsaved changes.
     connect(m_editor->document(), &QTextDocument::modificationChanged,
             this, &QWidget::setWindowModified);
 
     updateWindowTitle();
+    updateStatusBar();
 }
 
 void MainWindow::createActions()
 {
     QMenu *fileMenu = menuBar()->addMenu("&File");
+    QMenu *editMenu = menuBar()->addMenu("&Edit");
 
-    // Small helper: create an action, give it a shortcut, connect it, add it to the menu.
+    // helper for file menu actions
     auto addAction = [this, fileMenu](const QString &text,
                                       const QKeySequence &shortcut,
                                       void (MainWindow::*slot)()) {
@@ -57,6 +66,50 @@ void MainWindow::createActions()
     exitAction->setShortcut(QKeySequence("Ctrl+Q"));
     connect(exitAction, &QAction::triggered, this, &QWidget::close);
     fileMenu->addAction(exitAction);
+
+    QAction *undoAction = editMenu->addAction("&Undo");
+    undoAction->setShortcut(QKeySequence::Undo);
+    connect(undoAction, &QAction::triggered, m_editor, &QPlainTextEdit::undo);
+
+     QAction *redoAction = editMenu->addAction("&Redo");
+    redoAction->setShortcut(QKeySequence::Redo);
+    connect(redoAction, &QAction::triggered, m_editor, &QPlainTextEdit::redo);
+
+    editMenu->addSeparator();
+
+    QAction *cutAction = editMenu->addAction("Cu&t");
+    cutAction->setShortcut(QKeySequence::Cut);
+    connect(cutAction, &QAction::triggered, m_editor, &QPlainTextEdit::cut);
+
+    QAction *copyAction = editMenu->addAction("&Copy");
+    copyAction->setShortcut(QKeySequence::Copy);
+    connect(copyAction, &QAction::triggered, m_editor, &QPlainTextEdit::copy);
+
+    QAction *pasteAction = editMenu->addAction("&Paste");
+    pasteAction->setShortcut(QKeySequence::Paste);
+    connect(pasteAction, &QAction::triggered, m_editor, &QPlainTextEdit::paste);
+
+    editMenu->addSeparator();
+
+    QAction *selectAllAction = editMenu->addAction("Select &All");
+    selectAllAction->setShortcut(QKeySequence::SelectAll);
+    connect(selectAllAction, &QAction::triggered, m_editor, &QPlainTextEdit::selectAll);
+}
+
+void MainWindow::createStatusBar()
+{
+    // Create a label for line and add it to the right side
+    m_statusLabel = new QLabel(this);
+    statusBar()->addPermanentWidget(m_statusLabel);
+}
+
+void MainWindow::updateStatusBar()
+{
+    // QTextCursor tracks the current position
+    QTextCursor cursor = m_editor->textCursor();
+    int line = cursor.blockNumber() + 1;
+    int col = cursor.columnNumber() + 1;
+    m_statusLabel->setText(QString("Line %1, Col %2").arg(line).arg(col));
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -99,7 +152,7 @@ void MainWindow::saveFileAs()
 bool MainWindow::maybeSave()
 {
     if (!m_editor->document()->isModified())
-        return true;    // Nothing to lose
+        return true;    
 
     const QMessageBox::StandardButton answer = QMessageBox::warning(
         this, "Text Editor",
@@ -112,7 +165,7 @@ bool MainWindow::maybeSave()
     case QMessageBox::Cancel:
         return false;
     default:
-        return true;        // Discard
+        return true;        
     }
 }
 

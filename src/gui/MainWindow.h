@@ -5,6 +5,7 @@
 
 class QPlainTextEdit;
 class QCloseEvent;
+class QLabel;
 
 // The main application window: text area plus the File menu.
 class MainWindow : public QMainWindow {
@@ -22,17 +23,20 @@ private slots:
     void openFile();
     void saveFile();
     void saveFileAs();
+    void updateStatusBar(); // added for status bar
 
 private:
-    void createActions();                       // Builds the File menu
-    bool maybeSave();                           // Asks to save unsaved changes; false = user cancelled
-    bool save();                                // Save, or Save As if the file has no name yet
-    bool saveAs();                              // Ask for a path, then write
-    bool loadFile(const QString &path);         // Read a file into the editor
-    bool writeFile(const QString &path);        // Write the editor text to a file
-    void setCurrentFile(const QString &path);   // Remember the path and reset the modified flag
+    void createActions(); // Builds the File menu
+    void createStatusBar(); // builds the status bar
+    bool maybeSave(); // Asks to save unsaved changes; false = user cancelled
+    bool save(); // Save, or Save As if the file has no name yet
+    bool saveAs(); // Ask for a path, then write
+    bool loadFile(const QString &path); // Read a file into the editor
+    bool writeFile(const QString &path); // Write the editor text to a file
+    void setCurrentFile(const QString &path); // Remember the path and reset the modified flag
     void updateWindowTitle();
 
     QPlainTextEdit *m_editor;
-    QString m_currentFile;                      // Empty means "Untitled"
+    QString m_currentFile;                      
+    QLabel *m_statusLabel; // label for status bar
 };
