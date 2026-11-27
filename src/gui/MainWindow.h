@@ -6,6 +6,7 @@
 class QPlainTextEdit;
 class QCloseEvent;
 class QLabel;
+class FindReplace;
 
 // The main application window: text area plus the File menu.
 class MainWindow : public QMainWindow {
@@ -24,7 +25,8 @@ private slots:
     void saveFile();
     void saveFileAs();
     void updateStatusBar(); // added for status bar
-
+    void showFindReplace();
+    
 private:
     void createActions(); // Builds the File menu
     void createStatusBar(); // builds the status bar
@@ -39,4 +41,5 @@ private:
     QPlainTextEdit *m_editor;
     QString m_currentFile;                      
     QLabel *m_statusLabel; // label for status bar
+    FindReplace *m_findReplace;
 };

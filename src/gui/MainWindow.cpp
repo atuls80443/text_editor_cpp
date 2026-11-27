@@ -1,4 +1,5 @@
 #include "MainWindow.h"
+#include "FindReplace.h"
 
 #include <QAction>
 #include <QCloseEvent>
@@ -19,7 +20,8 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
-      m_editor(new QPlainTextEdit(this))
+      m_editor(new QPlainTextEdit(this)),
+      m_findReplace(new FindReplace(m_editor, this))
 {
     resize(900, 600);
     m_editor->setFont(QFont("Consolas", 11));
@@ -94,6 +96,19 @@ void MainWindow::createActions()
     QAction *selectAllAction = editMenu->addAction("Select &All");
     selectAllAction->setShortcut(QKeySequence::SelectAll);
     connect(selectAllAction, &QAction::triggered, m_editor, &QPlainTextEdit::selectAll);
+
+    editMenu->addSeparator();
+
+    QAction *findAction = editMenu->addAction("&Find/Replace...");
+    findAction->setShortcut(QKeySequence::Find);
+    connect(findAction, &QAction::triggered, this, &MainWindow::showFindReplace);
+}
+
+void MainWindow::showFindReplace()
+{
+    m_findReplace->show();
+    m_findReplace->raise();
+    m_findReplace->activateWindow();
 }
 
 void MainWindow::createStatusBar()
